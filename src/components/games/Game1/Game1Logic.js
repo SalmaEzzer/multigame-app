@@ -42,12 +42,32 @@ export class Game1Logic {
 
     this.groundX1 = 0;
     this.groundX2 = this.screenWidth;
+
+    // ✅ ajout minimal
+    this.lives = 3;
+    this.isHurt = false;
+    this.hurtTimer = 0;
+    this.invincible = false;
+    this.invincibleTimer = 0;
   }
 
   update() {
     if (this.gameOver) return;
 
     this.frame++;
+
+    // timers hurt / invincible
+    if (this.hurtTimer > 0) {
+      this.hurtTimer--;
+    } else {
+      this.isHurt = false;
+    }
+
+    if (this.invincibleTimer > 0) {
+      this.invincibleTimer--;
+    } else {
+      this.invincible = false;
+    }
 
     // Player physics
     this.player.vy += GRAVITY;
@@ -122,13 +142,22 @@ export class Game1Logic {
       return coin.x + coin.width > -30;
     });
 
-    // Collisions
+    // Collisions obstacles
     this.obstacles.forEach((obs) => {
-      if (this.checkCollision(this.player, obs)) {
-        this.gameOver = true;
+      if (this.checkCollision(this.player, obs) && !this.invincible) {
+        this.lives -= 1;
+        this.isHurt = true;
+        this.hurtTimer = 18;
+        this.invincible = true;
+        this.invincibleTimer = 50;
+
+        if (this.lives <= 0) {
+          this.gameOver = true;
+        }
       }
     });
 
+    // Collisions coins
     this.coins = this.coins.filter((coin) => {
       if (this.checkCollision(this.player, coin)) {
         this.coinsCollected++;
